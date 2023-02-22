@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
    return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Chat Socket', //Titulo
-     initialRoute: 'login', // inicial rutas y screens.dart
+     initialRoute: 'chat', // inicial rutas y screens.dart
      routes: appRouter,
     );
  }
