@@ -1,6 +1,7 @@
 # chat_realtime
 
-A new Flutter project.
+Aplicacion de chat, backend en node.js y express, base de datos mongoDB 
+Registra usuarios, hace login de usuarios 
 
 ## Getting Started
 
