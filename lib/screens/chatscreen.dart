@@ -1,8 +1,13 @@
 import 'dart:io';
 
+import 'package:chat_realtime/models/mensajes_response.dart';
+import 'package:chat_realtime/service/auth_service.dart';
+import 'package:chat_realtime/service/chat_service.dart';
+import 'package:chat_realtime/service/socket_service.dart';
 import 'package:chat_realtime/widgets/burbuja_chat.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({Key? key}) : super(key: key);
@@ -12,6 +17,9 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
+  late ChatService chatServer;
+  late SocketService socketServer;
+  late AuthService authServer;
   final _textController = TextEditingController();
   final _focuseNode = FocusNode();
   bool _estaEscribiendo = false;
@@ -21,24 +29,64 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     //  BurbujaChat(text: 'text otros', uid: '123a',animationController: AnimationController(vsync: this, duration: const Duration(milliseconds: 800))),
   ];
   @override
+  void initState() {
+    chatServer = Provider.of<ChatService>(context, listen: false);
+    socketServer = Provider.of<SocketService>(context, listen: false);
+    authServer = Provider.of<AuthService>(context, listen: false);
+    socketServer.socket.on('mensaje-personal', _escucharMensaje);
+    _cargarHistorial(chatServer.usuarioPara!.uid);
+    super.initState();
+  }
+
+  void _cargarHistorial(String usuarioID) async {
+    List<Mensaje> chat = await chatServer.getChat(usuarioID);
+    print(chat);
+    final historial = chat.map((m) => BurbujaChat(
+        text: m.mensaje,
+        uid: m.de,
+        animationController: AnimationController(
+            vsync: this, duration: const Duration(milliseconds: 800))
+          ..forward()));
+    mensajechat.insertAll(0, historial);
+    setState(() {
+      
+    });
+  }
+
+  void _escucharMensaje(dynamic data) {
+    // print('mensaje $data');
+    BurbujaChat mensaje = BurbujaChat(
+        text: data['mensaje'],
+        uid: data['de'],
+        animationController: AnimationController(
+            vsync: this, duration: const Duration(milliseconds: 800)));
+    setState(() {
+      mensajechat.insert(0, mensaje);
+    });
+    // mensajechat.add(mensaje);
+    mensaje.animationController.forward();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // final chatServer = Provider.of<ChatService>(context);
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.white,
           title: Column(
-            children: const [
+            children: [
               CircleAvatar(
                 maxRadius: 18,
                 child: Text(
-                  'te',
-                  style: TextStyle(fontSize: 14, color: Colors.white),
+                  chatServer.usuarioPara!.nombre.substring(0, 2),
+                  style: const TextStyle(fontSize: 14, color: Colors.white),
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 3,
               ),
-              Text('test 1 ',
-                  style: TextStyle(fontSize: 14, color: Colors.black54)),
+              Text(chatServer.usuarioPara!.nombre,
+                  style: const TextStyle(fontSize: 14, color: Colors.black54)),
             ],
           ),
           centerTitle: true,
@@ -117,7 +165,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _estaEscribiendo = false;
     final newMessage = BurbujaChat(
       text: text,
-      uid: '123',
+      uid: authServer.nuevoUsuario!.uid,
       animationController: AnimationController(
           vsync: this, duration: const Duration(milliseconds: 200)),
     );
@@ -125,6 +173,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     mensajechat.insert(0, newMessage);
     newMessage.animationController.forward();
     setState(() {});
+    socketServer.emit('mensaje-personal', {
+      'de': authServer.nuevoUsuario!.uid,
+      'para': chatServer.usuarioPara!.uid,
+      'mensaje': text
+    });
     _textController.text = '';
   }
 
@@ -134,6 +187,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     for (var element in mensajechat) {
       element.animationController.dispose();
     }
+    socketServer.socket.off('mensaje-personal');
     super.dispose();
   }
 }

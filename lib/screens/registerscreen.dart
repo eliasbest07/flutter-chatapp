@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../helpers/mostrar_alerta.dart';
+import '../service/socket_service.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -54,6 +55,7 @@ class __FormState extends State<_Form> {
   @override
   Widget build(BuildContext context) {
     final authServer = Provider.of<AuthService>(context);
+    final socketServer = Provider.of<SocketService>(context);
     return Container(
       margin: const EdgeInsets.only(top: 40),
       padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -94,10 +96,10 @@ class __FormState extends State<_Form> {
                           claveController.text);
                       if (registro == true) {
                         print('se registro');
-                    Navigator.pushReplacementNamed(context, 'usuarios');
+                        socketServer.conectar();
+                        Navigator.pushReplacementNamed(context, 'usuarios');
                       } else {
-                        mostrarAlerta(context, 'Registro Incorrecto',
-                           registro );
+                        mostrarAlerta(context, 'Registro Incorrecto', registro);
                       }
                     }),
         ],

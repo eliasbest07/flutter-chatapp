@@ -1,5 +1,6 @@
 import 'package:chat_realtime/helpers/mostrar_alerta.dart';
 import 'package:chat_realtime/service/auth_service.dart';
+import 'package:chat_realtime/service/socket_service.dart';
 import 'package:chat_realtime/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -52,6 +53,7 @@ class __FormState extends State<_Form> {
   @override
   Widget build(BuildContext context) {
     final authServer = Provider.of<AuthService>(context);
+    final socketServer = Provider.of<SocketService>(context);
     return Container(
       margin: const EdgeInsets.only(top: 40),
       padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -81,6 +83,7 @@ class __FormState extends State<_Form> {
                           claveController.text.trim());
                       if (loginOK) {
                         // ir a otra pontalla
+                        socketServer.conectar();
                         Navigator.pushReplacementNamed(context, 'usuarios');
                       } else {
                         // mostar alerta

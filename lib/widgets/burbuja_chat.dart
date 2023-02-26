@@ -1,16 +1,31 @@
+import 'package:chat_realtime/service/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class BurbujaChat extends StatelessWidget {
-  const BurbujaChat({super.key, required this.text, required this.uid, required this.animationController});
+  const BurbujaChat(
+      {super.key,
+      required this.text,
+      required this.uid,
+      required this.animationController});
   final String text;
   final String uid;
   final AnimationController animationController;
 
   @override
   Widget build(BuildContext context) {
-    return uid == '123' ? FadeTransition(opacity: animationController,
-    child: SizeTransition(sizeFactor: CurvedAnimation(parent: animationController, curve: Curves.easeOut) ,
-    child: _myMessage())) : _notmyMessage();
+    final authServer = Provider.of<AuthService>(context,listen: false);
+    return uid == authServer.nuevoUsuario!.uid
+        ? FadeTransition(
+            opacity: animationController,
+            child: SizeTransition(
+                sizeFactor: CurvedAnimation(
+                    parent: animationController, curve: Curves.easeOut),
+                child: _myMessage()))
+        : SizeTransition(
+            sizeFactor: CurvedAnimation(
+                parent: animationController, curve: Curves.easeOut),
+            child: _notmyMessage());
   }
 
   Widget _myMessage() {
